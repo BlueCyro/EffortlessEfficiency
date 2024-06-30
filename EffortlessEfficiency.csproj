@@ -1,0 +1,77 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup> 
+    <TargetFramework>net472</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+
+    <Version>1.0.0</Version>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <Authors>Cyro</Authors>
+    <Product>Effortless Efficiency</Product>
+    <Description>A bunch of efficiency hacks for Resonite</Description>
+    <Copyright>Copyright (c) 2024 Cyro</Copyright>
+
+
+    <ReleaseBuild>./ReleaseBuild/</ReleaseBuild>
+  </PropertyGroup>
+
+
+  <!--This will test for the default Steam installation paths for Resonite on Windows and Linux.-->
+  <PropertyGroup Condition="'$(ResonitePath)'==''">
+    <ResonitePath>C:\Program Files (x86)\Steam\steamapps\common\Resonite\</ResonitePath> 
+    <!--If neither path above exists, you can define your custom Resonite install directory here -->
+    <ResonitePath Condition="'$(ResonitePath)'==''">/Custom/Resonite/Install/Path</ResonitePath>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <Reference Include="ResoniteModLoader">
+      <HintPath>$(ResonitePath)Libraries\ResoniteModLoader.dll</HintPath>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(ResonitePath)0Harmony.dll</HintPath>
+      <HintPath Condition="Exists('$(ResonitePath)rml_libs/0Harmony.dll')">$(ResonitePath)rml_libs\0Harmony.dll</HintPath>
+      <HintPath Condition="Exists('$(ResonitePath)Libraries/0Harmony.dll')">$(ResonitePath)Libraries\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="FrooxEngine">
+      <HintPath>$(ResonitePath)Resonite_Data/Managed/FrooxEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="Elements.Core">
+      <HintPath>$(ResonitePath)Resonite_Data/Managed/Elements.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Elements.Assets">
+      <HintPath>$(ResonitePath)Resonite_Data/Managed/Elements.Assets.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+  </ItemGroup>
+
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Copy SourceFiles="$(OutDir)$(TargetFileName)" DestinationFolder="$(ResonitePath)rml_mods" />
+  </Target>
+
+
+  <Target Name="CopyToReleases" AfterTargets="Publish">
+    <Copy SourceFiles="$(OutDir)$(TargetFileName)" DestinationFolder="$(ReleaseBuild)" />
+  </Target>
+
+
+  <Target Name="DeepClean" AfterTargets="Clean">
+    <RemoveDir Directories="./bin" />
+    <RemoveDir Directories="./obj" />
+
+    <ItemGroup>
+      <FilesToDelete Include="$(ReleaseBuild)**/*" />
+    </ItemGroup>
+
+    <Delete Files="@(FilesToDelete)" />
+    <Exec Command="dotnet restore" />
+  </Target>
+</Project>
